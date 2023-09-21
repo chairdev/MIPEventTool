@@ -44,7 +44,15 @@ namespace MIPEventTool
                         //copy into from bin into res from pointer
                         byte[] res = bin.SubArray(8, (int)pointer);
                         //Array.Copy(bin, res, (int)value);
-                        ranges.Add((int)pointer, res[0]);
+                        if(ranges.ContainsKey((int)pointer))
+                        {
+                            ranges[(int)pointer] = res[0];
+                        }
+                        else
+                        {
+                            ranges.Add((int)pointer, res[0]);
+                        }
+                        
 
                         //DecodeDialogue(res, filenameWithoutExtension + i);
                     }
@@ -52,7 +60,18 @@ namespace MIPEventTool
 				}
 			}
 
-	
+            foreach (var entry in ranges)
+            {
+                int pointer = entry.Key;
+                byte[] data = new byte[1]; // Modify the size as needed
+
+                // Extract the data from 'bin' based on the 'pointer' and 'data' size
+                Array.Copy(bin, 8 + pointer, data, 0, data.Length);
+
+                // Decode the extracted data using your DecodeDialogue function
+                DecodeDialogue(data, $"{filenameWithoutExtension}_{pointer}.bin");
+            }
+
 				
 		}
 
@@ -82,7 +101,7 @@ namespace MIPEventTool
                         j++;
                     }
                 }
-                if (bin[j] == 0xFF)
+                else if (bin[j] == 0xFF)
                 {
                     //total command = FF 05 XX 00
                     switch (bin[j + 1])
@@ -93,12 +112,12 @@ namespace MIPEventTool
                         case 0x04:
                             text += CharacterTable.DialogueTable[(ushort)(bin[j] << 8 | bin[j + 1])];
                             j += 1;
-                            break;
+                        break;
                         case 0x05:
                             byte time = bin[j + 2];
                             text += CharacterTable.DialogueTable[(ushort)(bin[j] << 8 | bin[j + 1])] + time + "]";
                             j += 2;
-                            break;
+                        break;
                         case 0x06:
                         case 0x07:
                         case 0x08:
@@ -107,19 +126,18 @@ namespace MIPEventTool
                             byte arg = bin[j + 2];
                             text += CharacterTable.DialogueTable[(ushort)(bin[j] << 8 | bin[j + 1])] + arg + "]";
                             j += 1;
-                            break;
+                         break;
                     }
 
                 }
-                //if the byte is in the table, add it to the string
-                if (CharacterTable.DialogueTable.ContainsKey(bin[j]))
+                else if (CharacterTable.DialogueTable.ContainsKey(bin[j]))
                 {
                     text += CharacterTable.DialogueTable[bin[j]];
                 }
-                //if it's not in the table, add a space
+                //if it's not in the table, write [XX]
                 else
                 {
-                    //text += "?";
+                    text += "[" + bin[j].ToString("X2") + "]";
                 }
             }
             File.WriteAllText(Environment.CurrentDirectory + "/output/" + filenameWithoutExtension + ".txt", text);

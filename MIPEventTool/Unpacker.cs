@@ -5,6 +5,9 @@ using System.Reflection;
 using static System.Net.Mime.MediaTypeNames;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace MIPEventTool
 {
@@ -34,7 +37,7 @@ namespace MIPEventTool
             List<string> strings = new List<string>();
             Dictionary<int, byte> ranges = new Dictionary<int, byte>();
 
-            for (int i = 0; i < bin.Length - 8; i += 4)
+            for (int i = 0; i < bin.Length - 8; i+=2)
             {
                 UInt16 val = BitConverter.ToUInt16(bin, i);
 
@@ -67,18 +70,20 @@ namespace MIPEventTool
             foreach (var entry in ranges)
             {
                 int pointer = entry.Key;
-                byte[] data = new byte[1]; // Modify the size as needed
-
-                // Extract the data from 'bin' based on the 'pointer' and 'data' size
-                Array.Copy(bin, 8 + pointer, data, 0, data.Length);
-
                 // Decode the extracted data using your DecodeDialogue function
                 strings.Add(DecodeDialogue(bin, 8 + pointer));
             }
+        
+             var serializer = new SerializerBuilder()
+                .WithNamingConvention(CamelCaseNamingConvention.Instance)
+            .Build();
+            var yaml = serializer.Serialize(strings);
+            //System.Console.WriteLine(yaml);
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            string jsonString = JsonSerializer.Serialize(strings, options);
-            File.WriteAllText(Environment.CurrentDirectory + "/output/" + $"{filenameWithoutExtension}_text.json", jsonString);
+            File.WriteAllText(Environment.CurrentDirectory + "/output/" + $"{filenameWithoutExtension}.yml", yaml);
+
+            //throw new Exception();
+            
         }
 
         bool IsValidPointer(int ptr, int length)

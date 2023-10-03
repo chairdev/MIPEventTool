@@ -43,6 +43,8 @@ namespace MIPEventTool
 			{0x6E, "["},
 			{0x6F, "]"},
 
+			{0x75, "." },
+
 			{0x80A5, "."},
 			{0x80A6, "A"},
 			{0x80A7, "B"},
@@ -109,7 +111,7 @@ namespace MIPEventTool
 			{0x80F4, "��"},
 			{0x80F6, "��"},
 
-			{0xFF01, "[CLOSE]"},
+			{0xFF01, "[CLOSE]\n"},
 			{0xFF02, "[INPUT]"},
 			{0xFF03, " "},
 			{0xFF04, "[CLEAR]"},
